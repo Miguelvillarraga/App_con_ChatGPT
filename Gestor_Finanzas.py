@@ -4,16 +4,14 @@ import datetime as dt
 
 # Configuración inicial
 st.title("Gestor de Finanzas Personales")
-
-# Autor
-st.write("Esta app fue elaborada por **Miguel Angel Villarraga Franco**.")
-
-# Introducción
 st.write("Administra tus ingresos, gastos y metas de ahorro, y genera reportes semanales y mensuales.")
 
 # Simulación de una base de datos local
 if "finanzas" not in st.session_state:
     st.session_state["finanzas"] = pd.DataFrame(columns=["Fecha", "Tipo", "Categoría", "Monto", "Comentario"])
+
+if "meta_ahorro" not in st.session_state:
+    st.session_state["meta_ahorro"] = {"Monto objetivo": 0, "Progreso": 0.0}
 
 # Función para agregar un registro
 def agregar_registro(fecha, tipo, categoria, monto, comentario):
@@ -49,8 +47,8 @@ fecha_fin = st.date_input("Fecha de fin", dt.date.today())
 
 # Filtrar datos
 filtro_datos = st.session_state["finanzas"][
-    (st.session_state["finanzas"]["Fecha"] >= fecha_inicio) &
-    (st.session_state["finanzas"]["Fecha"] <= fecha_fin)
+    (st.session_state["finanzas"]["Fecha"] >= str(fecha_inicio)) &
+    (st.session_state["finanzas"]["Fecha"] <= str(fecha_fin))
 ]
 
 if filtro_datos.empty:
@@ -77,11 +75,12 @@ else:
 
 # Metas de ahorro
 st.header("Metas de Ahorro")
-if "meta_ahorro" not in st.session_state:
-    st.session_state["meta_ahorro"] = {"Monto objetivo": 0, "Progreso": 0}
-
 meta_objetivo = st.number_input("Establece tu meta de ahorro:", min_value=0.0, value=st.session_state["meta_ahorro"]["Monto objetivo"])
-ahorro_actual = filtro_datos[(filtro_datos["Tipo"] == "Ingreso") & (filtro_datos["Categoría"] == "Ahorro")]["Monto"].sum()
+
+ahorro_actual = st.session_state["finanzas"][
+    (st.session_state["finanzas"]["Tipo"] == "Ingreso") & 
+    (st.session_state["finanzas"]["Categoría"] == "Ahorro")
+]["Monto"].sum()
 
 if st.button("Guardar meta de ahorro"):
     st.session_state["meta_ahorro"]["Monto objetivo"] = meta_objetivo
