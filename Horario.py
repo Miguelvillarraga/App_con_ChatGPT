@@ -1,14 +1,10 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 
 # Configuración inicial
 st.title("Gestor de Horarios")
-
 # Autor
 st.write("Esta app fue elaborada por **Miguel Angel Villarraga Franco**.")
-
-# Introducción
 st.write("Crea materias con sus respectivos horarios y visualízalos en un horario semanal.")
 
 # Inicialización de datos
@@ -57,7 +53,15 @@ if not st.session_state["materias"].empty:
     for _, row in st.session_state["materias"].iterrows():
         inicio = row["Hora Inicio"].strftime("%H:%M")
         fin = row["Hora Fin"].strftime("%H:%M")
-        rango_horas = pd.date_range(inicio, fin, freq="30min", closed="left").strftime("%H:%M")
+        
+        try:
+            # Asegurar que las horas estén en el formato correcto
+            rango_horas = pd.date_range(
+                f"2023-01-01 {inicio}", f"2023-01-01 {fin}", freq="30min", inclusive="left"
+            ).strftime("%H:%M")
+        except Exception as e:
+            st.error(f"Error al procesar los horarios de la materia: {row['Materia']}. Detalles: {e}")
+            continue
 
         for hora in rango_horas:
             if hora in horario.index:
