@@ -3,6 +3,7 @@ import pandas as pd
 
 # Configuración inicial
 st.title("Calculadora de PAPA - UNAL")
+st.write("Esta app fue elaborada por **Miguel Angel Villarraga Franco**.")
 st.write("Calcula tu PAPA global y por tipología de asignatura.")
 
 # Inicialización de datos
