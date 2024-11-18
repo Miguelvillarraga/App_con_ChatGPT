@@ -4,6 +4,8 @@ import datetime as dt
 
 # Configuración inicial
 st.title("Gestor de Finanzas Personales")
+# Autor
+st.write("Esta app fue elaborada por **Miguel Angel Villarraga Franco**.")
 st.write("Administra tus ingresos, gastos y metas de ahorro, y genera reportes semanales y mensuales.")
 
 # Simulación de una base de datos local
