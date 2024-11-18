@@ -1,9 +1,7 @@
 import streamlit as st
-import pandas as pd
 
-# Función para crear el horario
+# Función para crear las horas posibles (6:00 a 22:00, solo en horas en punto)
 def generar_horario():
-    # Definir las horas disponibles (de 6:00 a 22:00, solo en horas en punto)
     horas = [f"{h}:00" for h in range(6, 23)]
     return horas
 
@@ -23,7 +21,6 @@ def agregar_clase(horario, materia, dia, hora_inicio, duracion):
 st.title("Gestor de Horarios de Clases")
 # Autor
 st.write("Esta app fue elaborada por **Miguel Angel Villarraga Franco**.")
-
 st.write("Agrega tus clases al horario seleccionando el día, la hora de inicio y la duración de 2 horas.")
 
 # Crear las horas posibles
@@ -32,9 +29,9 @@ horas_disponibles = generar_horario()
 
 # Selección de materia y días
 materia = st.text_input("Nombre de la materia:")
-dia_seleccionado = st.selectbox("Selecciona el día de la semana:", ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'])
 
-# Selección de la hora de inicio (debe ser en horas en punto)
+# Mostrar las opciones de día y hora de inicio
+dia_seleccionado = st.selectbox("Selecciona el día de la semana:", ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'])
 hora_inicio = st.selectbox("Selecciona la hora de inicio:", horas_disponibles)
 
 # Duración fija de 2 horas
@@ -48,7 +45,7 @@ if st.button("Agregar clase"):
     else:
         st.error("Por favor ingresa el nombre de la materia.")
 
-# Mostrar el horario
+# Mostrar el horario actualizado
 st.subheader("Horario semanal:")
 for dia, horas in horario.items():
     if horas:
