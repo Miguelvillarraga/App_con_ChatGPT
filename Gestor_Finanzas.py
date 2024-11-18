@@ -46,6 +46,40 @@ if st.session_state["finanzas"].empty:
 else:
     st.dataframe(st.session_state["finanzas"])
 
+# Análisis de datos
+st.header("Reportes")
+modo_reporte = st.selectbox("Selecciona el período del reporte:", ["Semanal", "Mensual"])
+fecha_inicio = st.date_input("Fecha de inicio", dt.date.today() - dt.timedelta(days=7))
+fecha_fin = st.date_input("Fecha de fin", dt.date.today())
+
+# Filtrar datos
+filtro_datos = st.session_state["finanzas"][
+    (st.session_state["finanzas"]["Fecha"] >= fecha_inicio) &
+    (st.session_state["finanzas"]["Fecha"] <= fecha_fin)
+]
+
+if filtro_datos.empty:
+    st.write("No hay registros en el rango seleccionado.")
+else:
+    total_ingresos = filtro_datos[filtro_datos["Tipo"] == "Ingreso"]["Monto"].sum()
+    total_gastos = filtro_datos[filtro_datos["Tipo"] == "Gasto"]["Monto"].sum()
+    balance = total_ingresos - total_gastos
+
+    st.subheader("Resumen del período")
+    st.write(f"**Total de ingresos:** ${total_ingresos:.2f}")
+    st.write(f"**Total de gastos:** ${total_gastos:.2f}")
+    st.write(f"**Balance neto:** ${balance:.2f}")
+
+    st.subheader("Detalle por categoría")
+    detalle_categoria = (
+        filtro_datos.groupby(["Tipo", "Categoría"])["Monto"]
+        .sum()
+        .reset_index()
+        .pivot(index="Categoría", columns="Tipo", values="Monto")
+        .fillna(0)
+    )
+    st.dataframe(detalle_categoria)
+    
 # Gestión de metas de ahorro
 st.header("Gestión de Metas de Ahorro")
 
