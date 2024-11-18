@@ -1,84 +1,56 @@
 import streamlit as st
 import pandas as pd
 
-# Configuración inicial
-st.title("Gestor de Horarios")
+# Función para crear el horario
+def generar_horario():
+    # Definir las horas disponibles (de 6:00 a 22:00, solo en horas en punto)
+    horas = [f"{h}:00" for h in range(6, 23)]
+    return horas
+
+# Función para agregar clases al horario
+def agregar_clase(horario, materia, dia, hora_inicio, duracion):
+    # Convertir la hora de inicio y la duración en horas a un rango de horas
+    hora_inicio_idx = horario.index(hora_inicio)
+    horas_clase = [horario[(hora_inicio_idx + i) % len(horario)] for i in range(duracion)]
+    
+    # Agregar la clase al horario
+    for hora in horas_clase:
+        if hora not in horario[dia]:
+            horario[dia].append(hora)
+    return horario
 
 # Autor
 st.write("Esta app fue elaborada por **Miguel Angel Villarraga Franco**.")
-st.write("Crea materias con horarios para varios días y visualízalos en un horario semanal.")
+# Interfaz de usuario en Streamlit
+st.title("Gestor de Horarios de Clases")
+st.write("Agrega tus clases al horario seleccionando el día, la hora de inicio y la duración.")
 
-# Inicialización de datos
-if "materias" not in st.session_state:
-    st.session_state["materias"] = pd.DataFrame(columns=["Materia", "Día", "Hora Inicio", "Hora Fin"])
+# Crear las horas posibles
+horario = {dia: [] for dia in ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes']}
+horas_disponibles = generar_horario()
 
-# Función para agregar horarios
-def agregar_horarios(materia, dias_seleccionados, horarios):
-    for dia, horario in zip(dias_seleccionados, horarios):
-        nueva_materia = {
-            "Materia": materia,
-            "Día": dia,
-            "Hora Inicio": horario[0],
-            "Hora Fin": horario[1]
-        }
-        st.session_state["materias"] = pd.concat(
-            [st.session_state["materias"], pd.DataFrame([nueva_materia])], ignore_index=True
-        )
+# Selección de materia y días
+materia = st.text_input("Nombre de la materia:")
+dia_seleccionado = st.selectbox("Selecciona el día de la semana:", ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'])
 
-# Entrada de datos
-st.header("Agregar Materia y Horarios")
-materia = st.text_input("Nombre de la materia")
-dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"]
-dias_seleccionados = st.multiselect("Selecciona los días", dias)
+# Selección de la hora de inicio (debe ser en horas en punto)
+hora_inicio = st.selectbox("Selecciona la hora de inicio:", horas_disponibles)
 
-horarios = []
-if dias_seleccionados:
-    for dia in dias_seleccionados:
-        st.write(f"Horario para {dia}:")
-        hora_inicio = st.time_input(f"Hora de inicio ({dia})", key=f"inicio_{dia}")
-        hora_fin = st.time_input(f"Hora de fin ({dia})", key=f"fin_{dia}")
-        if hora_inicio < hora_fin:
-            horarios.append((hora_inicio, hora_fin))
-        else:
-            st.error(f"El horario para {dia} tiene un error: la hora de inicio debe ser menor que la hora de fin.")
+# Duración de la clase (mínimo 2 horas)
+duracion = st.slider("Duración de la clase (en horas):", min_value=2, max_value=4, value=2)
 
-if st.button("Agregar Materia"):
-    if materia and dias_seleccionados and len(horarios) == len(dias_seleccionados):
-        agregar_horarios(materia, dias_seleccionados, horarios)
-        st.success("Materia y horarios agregados correctamente.")
+# Agregar la clase al horario
+if st.button("Agregar clase"):
+    if materia:
+        horario = agregar_clase(horario, materia, dia_seleccionado, hora_inicio, duracion)
+        st.success(f"Clase '{materia}' agregada al {dia_seleccionado} desde {hora_inicio} durante {duracion} horas.")
     else:
-        st.error("Por favor, verifica que has completado todos los campos y que los horarios son válidos.")
+        st.error("Por favor ingresa el nombre de la materia.")
 
-# Visualización de las materias registradas
-st.header("Materias Registradas")
-if st.session_state["materias"].empty:
-    st.write("No hay materias registradas aún.")
-else:
-    st.dataframe(st.session_state["materias"])
-
-# Generar horario semanal
-st.header("Horario Semanal")
-
-if not st.session_state["materias"].empty:
-    # Crear una tabla vacía para el horario
-    dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"]
-    horas = pd.date_range("06:00", "22:00", freq="30min").strftime("%H:%M")
-    horario = pd.DataFrame("", index=horas, columns=dias)
-
-    # Llenar la tabla con las materias
-    for _, row in st.session_state["materias"].iterrows():
-        inicio = row["Hora Inicio"].strftime("%H:%M")
-        fin = row["Hora Fin"].strftime("%H:%M")
-        
-        rango_horas = pd.date_range(
-            f"2023-01-01 {inicio}", f"2023-01-01 {fin}", freq="30min", inclusive="left"
-        ).strftime("%H:%M")
-
-        for hora in rango_horas:
-            if hora in horario.index:
-                horario.at[hora, row["Día"]] = row["Materia"]
-
-    # Mostrar el horario
-    st.table(horario)
-else:
-    st.write("No hay materias registradas para mostrar el horario.")
+# Mostrar el horario
+st.subheader("Horario semanal:")
+for dia, horas in horario.items():
+    if horas:
+        st.write(f"{dia}: {', '.join(horas)}")
+    else:
+        st.write(f"{dia}: No hay clases programadas.")
