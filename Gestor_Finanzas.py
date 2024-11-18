@@ -10,14 +10,21 @@ st.write("Administra tus ingresos, gastos y metas de ahorro, y genera reportes s
 if "finanzas" not in st.session_state:
     st.session_state["finanzas"] = pd.DataFrame(columns=["Fecha", "Tipo", "Categoría", "Monto", "Comentario"])
 
-if "meta_ahorro" not in st.session_state:
-    st.session_state["meta_ahorro"] = {"Monto objetivo": 0, "Progreso": 0.0}
+if "metas" not in st.session_state:
+    st.session_state["metas"] = pd.DataFrame(columns=["Nombre", "Monto objetivo", "Progreso", "Fecha límite"])
 
 # Función para agregar un registro
 def agregar_registro(fecha, tipo, categoria, monto, comentario):
     nuevo_registro = {"Fecha": fecha, "Tipo": tipo, "Categoría": categoria, "Monto": monto, "Comentario": comentario}
     st.session_state["finanzas"] = pd.concat(
         [st.session_state["finanzas"], pd.DataFrame([nuevo_registro])], ignore_index=True
+    )
+
+# Función para agregar una meta
+def agregar_meta(nombre, monto_objetivo, fecha_limite):
+    nueva_meta = {"Nombre": nombre, "Monto objetivo": monto_objetivo, "Progreso": 0.0, "Fecha límite": fecha_limite}
+    st.session_state["metas"] = pd.concat(
+        [st.session_state["metas"], pd.DataFrame([nueva_meta])], ignore_index=True
     )
 
 # Entrada de datos
@@ -39,56 +46,45 @@ if st.session_state["finanzas"].empty:
 else:
     st.dataframe(st.session_state["finanzas"])
 
-# Análisis de datos
-st.header("Reportes")
-modo_reporte = st.selectbox("Selecciona el período del reporte:", ["Semanal", "Mensual"])
-fecha_inicio = st.date_input("Fecha de inicio", dt.date.today() - dt.timedelta(days=7))
-fecha_fin = st.date_input("Fecha de fin", dt.date.today())
+# Gestión de metas de ahorro
+st.header("Gestión de Metas de Ahorro")
 
-# Filtrar datos
-filtro_datos = st.session_state["finanzas"][
-    (st.session_state["finanzas"]["Fecha"] >= str(fecha_inicio)) &
-    (st.session_state["finanzas"]["Fecha"] <= str(fecha_fin))
-]
+# Crear una nueva meta
+st.subheader("Crear Meta")
+nombre_meta = st.text_input("Nombre de la meta")
+monto_meta = st.number_input("Monto objetivo", min_value=0.0, format="%.2f")
+fecha_limite_meta = st.date_input("Fecha límite")
 
-if filtro_datos.empty:
-    st.write("No hay registros en el rango seleccionado.")
+if st.button("Guardar Meta"):
+    if nombre_meta and monto_meta > 0:
+        agregar_meta(nombre_meta, monto_meta, fecha_limite_meta)
+        st.success(f"Meta '{nombre_meta}' creada correctamente.")
+    else:
+        st.error("Por favor, completa todos los campos.")
+
+# Visualizar y actualizar metas
+st.subheader("Metas Actuales")
+if st.session_state["metas"].empty:
+    st.write("No hay metas creadas aún.")
 else:
-    total_ingresos = filtro_datos[filtro_datos["Tipo"] == "Ingreso"]["Monto"].sum()
-    total_gastos = filtro_datos[filtro_datos["Tipo"] == "Gasto"]["Monto"].sum()
-    balance = total_ingresos - total_gastos
+    for index, meta in st.session_state["metas"].iterrows():
+        st.write(f"**Meta:** {meta['Nombre']}")
+        st.write(f"- Monto objetivo: ${meta['Monto objetivo']:.2f}")
+        st.write(f"- Progreso actual: ${meta['Progreso']:.2f}")
+        st.write(f"- Fecha límite: {meta['Fecha límite']}")
 
-    st.subheader("Resumen del período")
-    st.write(f"**Total de ingresos:** ${total_ingresos:.2f}")
-    st.write(f"**Total de gastos:** ${total_gastos:.2f}")
-    st.write(f"**Balance neto:** ${balance:.2f}")
+        # Cálculo de progreso
+        ahorro_actual = st.session_state["finanzas"][
+            (st.session_state["finanzas"]["Tipo"] == "Ingreso") & 
+            (st.session_state["finanzas"]["Categoría"] == "Ahorro")
+        ]["Monto"].sum()
 
-    st.subheader("Detalle por categoría")
-    detalle_categoria = (
-        filtro_datos.groupby(["Tipo", "Categoría"])["Monto"]
-        .sum()
-        .reset_index()
-        .pivot(index="Categoría", columns="Tipo", values="Monto")
-        .fillna(0)
-    )
-    st.dataframe(detalle_categoria)
+        progreso = min(ahorro_actual / meta["Monto objetivo"], 1.0) if meta["Monto objetivo"] > 0 else 0.0
 
-# Metas de ahorro
-st.header("Metas de Ahorro")
-meta_objetivo = st.number_input("Establece tu meta de ahorro:", min_value=0.0, value=st.session_state["meta_ahorro"]["Monto objetivo"])
+        # Actualizar progreso en la base de datos
+        st.session_state["metas"].at[index, "Progreso"] = ahorro_actual
 
-ahorro_actual = st.session_state["finanzas"][
-    (st.session_state["finanzas"]["Tipo"] == "Ingreso") & 
-    (st.session_state["finanzas"]["Categoría"] == "Ahorro")
-]["Monto"].sum()
+        # Mostrar barra de progreso
+        st.progress(progreso)
 
-if st.button("Guardar meta de ahorro"):
-    st.session_state["meta_ahorro"]["Monto objetivo"] = meta_objetivo
-    st.success("Meta de ahorro actualizada.")
-
-st.write(f"**Progreso actual:** ${ahorro_actual:.2f} / ${meta_objetivo:.2f}")
-
-# Barra de progreso
-if meta_objetivo > 0:
-    progreso = min(ahorro_actual / meta_objetivo, 1.0)
-    st.progress(progreso)
+        st.write("---")
