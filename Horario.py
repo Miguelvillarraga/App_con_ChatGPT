@@ -21,15 +21,25 @@ def agregar_clase(horario, materia, dia, hora_inicio, duracion):
             horario[dia].append(hora)
     return horario
 
+# Función para borrar el horario
+def borrar_horario():
+    return {dia: [] for dia in ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes']}
+
 # Interfaz de usuario en Streamlit
 st.title("Gestor de Horarios de Clases")
+
 # Autor
 st.write("Esta app fue elaborada por **Miguel Angel Villarraga Franco**.")
+
 st.write("Agrega tus clases al horario seleccionando los días, la hora de inicio y la duración de la clase.")
 
 # Crear las horas posibles
 horario = {dia: [] for dia in ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes']}
 horas_disponibles = generar_horario()
+
+# Inicializar el estado de la app
+if 'horario_actual' not in st.session_state:
+    st.session_state['horario_actual'] = horario
 
 # Selección de materia
 materia = st.text_input("Nombre de la materia:")
@@ -53,16 +63,21 @@ if st.button("Agregar clase"):
         for dia in dias_seleccionados:
             hora_inicio = horas_y_duracion[dia]["hora_inicio"]
             duracion = horas_y_duracion[dia]["duracion"]
-            horario = agregar_clase(horario, materia, dia, hora_inicio, duracion)
+            st.session_state['horario_actual'] = agregar_clase(st.session_state['horario_actual'], materia, dia, hora_inicio, duracion)
         st.success(f"Clase '{materia}' agregada en {', '.join(dias_seleccionados)} con sus respectivas horas de inicio y duración.")
     else:
         st.error("Por favor ingresa el nombre de la materia y selecciona al menos un día.")
 
+# Borrar horario
+if st.button("Borrar horario"):
+    st.session_state['horario_actual'] = borrar_horario()
+    st.success("Horario borrado.")
+
 # Mostrar el horario en una tabla
 st.subheader("Horario semanal:")
 # Crear un DataFrame con el horario de clases
-horario_data = {dia: [''] * 17 for dia in horario}  # Se asume que hay 17 horas en el horario (6:00 a 22:00)
-for dia, horas in horario.items():
+horario_data = {dia: [''] * 17 for dia in st.session_state['horario_actual']}  # Se asume que hay 17 horas en el horario (6:00 a 22:00)
+for dia, horas in st.session_state['horario_actual'].items():
     for i, hora in enumerate(horas):
         hora_idx = horas_disponibles.index(hora)
         horario_data[dia][hora_idx] = materia  # Asignar la materia en el horario
