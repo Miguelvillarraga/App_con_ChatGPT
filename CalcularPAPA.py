@@ -17,7 +17,7 @@ def calcular_papa_por_tipologia(data, tipologia):
 # Interfaz de usuario en Streamlit
 st.title("Cálculo del PAPA (UNAL) desde CSV")
 st.write("Esta app fue elaborada por **Miguel Angel Villarraga Franco**")
-st.write("Calcula el PAPA global y por tipología de asignatura a partir de un archivo CSV.")
+st.write("Calcula el PAPA global y por tipología de asignatura a partir de un archivo CSV (debe contener las columnas Materia, Calificación, Créditos y Tipología). ")
 
 # Cargar archivo CSV
 archivo = st.file_uploader("Cargar archivo CSV", type=["csv"])
