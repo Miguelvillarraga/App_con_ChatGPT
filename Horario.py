@@ -19,11 +19,12 @@ def agregar_clase(horario, materia, dia, hora_inicio, duracion):
             horario[dia].append(hora)
     return horario
 
-# Autor
-st.write("Esta app fue elaborada por **Miguel Angel Villarraga Franco**.")
 # Interfaz de usuario en Streamlit
 st.title("Gestor de Horarios de Clases")
-st.write("Agrega tus clases al horario seleccionando el día, la hora de inicio y la duración.")
+# Autor
+st.write("Esta app fue elaborada por **Miguel Angel Villarraga Franco**.")
+
+st.write("Agrega tus clases al horario seleccionando el día, la hora de inicio y la duración de 2 horas.")
 
 # Crear las horas posibles
 horario = {dia: [] for dia in ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes']}
@@ -36,8 +37,8 @@ dia_seleccionado = st.selectbox("Selecciona el día de la semana:", ['Lunes', 'M
 # Selección de la hora de inicio (debe ser en horas en punto)
 hora_inicio = st.selectbox("Selecciona la hora de inicio:", horas_disponibles)
 
-# Duración de la clase (mínimo 2 horas)
-duracion = st.slider("Duración de la clase (en horas):", min_value=2, max_value=4, value=2)
+# Duración fija de 2 horas
+duracion = 2  # La duración se fija en 2 horas
 
 # Agregar la clase al horario
 if st.button("Agregar clase"):
