@@ -7,7 +7,7 @@ def generar_horario():
     return horas
 
 # Función para agregar clases al horario
-def agregar_clase(horario, materia, dias, hora_inicio, duracion):
+def agregar_clase(horario, materia, dia, hora_inicio, duracion):
     # Convertir la hora de inicio y la duración en horas a un rango de horas
     horas_disponibles = generar_horario()
     hora_inicio_idx = horas_disponibles.index(hora_inicio)
@@ -16,10 +16,9 @@ def agregar_clase(horario, materia, dias, hora_inicio, duracion):
     horas_clase = [horas_disponibles[(hora_inicio_idx + i) % len(horas_disponibles)] for i in range(duracion)]
     
     # Agregar la clase a los días seleccionados
-    for dia in dias:
-        for hora in horas_clase:
-            if hora not in horario[dia]:
-                horario[dia].append(hora)
+    for hora in horas_clase:
+        if hora not in horario[dia]:
+            horario[dia].append(hora)
     return horario
 
 # Interfaz de usuario en Streamlit
@@ -32,23 +31,30 @@ st.write("Agrega tus clases al horario seleccionando los días, la hora de inici
 horario = {dia: [] for dia in ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes']}
 horas_disponibles = generar_horario()
 
-# Selección de materia y días
+# Selección de materia
 materia = st.text_input("Nombre de la materia:")
 
 # Selección de días múltiples
 dias_seleccionados = st.multiselect("Selecciona los días de la semana:", ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'])
 
-# Selección de la hora de inicio
-hora_inicio = st.selectbox("Selecciona la hora de inicio:", horas_disponibles)
+# Diccionario para guardar las horas de inicio y la duración de cada día seleccionado
+horas_y_duracion = {}
 
-# Selección de la duración de la clase (de 1 a 3 horas)
-duracion = st.slider("Selecciona la duración de la clase (en horas):", 1, 3, 2)
+# Seleccionar hora de inicio y duración para cada día
+for dia in dias_seleccionados:
+    with st.expander(f"Configuración para {dia}"):
+        hora_inicio = st.selectbox(f"Selecciona la hora de inicio para {dia}:", horas_disponibles, key=f"{dia}_hora_inicio")
+        duracion = st.selectbox(f"Selecciona la duración (en horas) para {dia}:", [2, 3, 4], key=f"{dia}_duracion")
+        horas_y_duracion[dia] = {"hora_inicio": hora_inicio, "duracion": duracion}
 
 # Agregar la clase al horario
 if st.button("Agregar clase"):
     if materia and dias_seleccionados:
-        horario = agregar_clase(horario, materia, dias_seleccionados, hora_inicio, duracion)
-        st.success(f"Clase '{materia}' agregada en {', '.join(dias_seleccionados)} desde {hora_inicio} durante {duracion} horas.")
+        for dia in dias_seleccionados:
+            hora_inicio = horas_y_duracion[dia]["hora_inicio"]
+            duracion = horas_y_duracion[dia]["duracion"]
+            horario = agregar_clase(horario, materia, dia, hora_inicio, duracion)
+        st.success(f"Clase '{materia}' agregada en {', '.join(dias_seleccionados)} con sus respectivas horas de inicio y duración.")
     else:
         st.error("Por favor ingresa el nombre de la materia y selecciona al menos un día.")
 
@@ -64,5 +70,3 @@ for dia, horas in horario.items():
 # Convertir a DataFrame para mostrarlo como tabla
 df_horario = pd.DataFrame(horario_data, index=horas_disponibles)
 st.table(df_horario)
-
-
