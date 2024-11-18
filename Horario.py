@@ -2,14 +2,17 @@ import streamlit as st
 
 # Función para crear las horas posibles (6:00 a 22:00, solo en horas en punto)
 def generar_horario():
-    horas = [f"{h}:00" for h in range(6, 23)]
+    horas = [f"{h}:00" for h in range(6, 23)]  # Genera horas de 6:00 a 22:00
     return horas
 
 # Función para agregar clases al horario
 def agregar_clase(horario, materia, dia, hora_inicio, duracion):
     # Convertir la hora de inicio y la duración en horas a un rango de horas
-    hora_inicio_idx = horario.index(hora_inicio)
-    horas_clase = [horario[(hora_inicio_idx + i) % len(horario)] for i in range(duracion)]
+    horas_disponibles = generar_horario()
+    hora_inicio_idx = horas_disponibles.index(hora_inicio)
+    
+    # Calcular las horas de clase
+    horas_clase = [horas_disponibles[(hora_inicio_idx + i) % len(horas_disponibles)] for i in range(duracion)]
     
     # Agregar la clase al horario
     for hora in horas_clase:
@@ -19,8 +22,10 @@ def agregar_clase(horario, materia, dia, hora_inicio, duracion):
 
 # Interfaz de usuario en Streamlit
 st.title("Gestor de Horarios de Clases")
+
 # Autor
 st.write("Esta app fue elaborada por **Miguel Angel Villarraga Franco**.")
+
 st.write("Agrega tus clases al horario seleccionando el día, la hora de inicio y la duración de 2 horas.")
 
 # Crear las horas posibles
