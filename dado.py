@@ -17,8 +17,11 @@ mediana = np.median(resultados)
 # Intentar obtener la moda
 moda_resultado = stats.mode(resultados)
 
-# Si existe la moda, tomamos el primer valor, de lo contrario decimos que no hay moda
-moda = moda_resultado.mode[0] if moda_resultado.count[0] > 0 else "Sin moda"
+# Verificar si hay moda
+if moda_resultado.count[0] > 0:
+    moda = moda_resultado.mode[0]
+else:
+    moda = "Sin moda"
 
 varianza = np.var(resultados)
 desviacion_estandar = np.std(resultados)
