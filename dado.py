@@ -13,7 +13,7 @@ resultados = lanzar_dado()
 # Calcular estadísticas
 media = np.mean(resultados)
 mediana = np.median(resultados)
-moda = stats.mode(resultados)[0][0]  # La moda puede ser única
+moda = stats.mode(resultados).mode[0]  # Acceder correctamente a la moda
 varianza = np.var(resultados)
 desviacion_estandar = np.std(resultados)
 
@@ -25,7 +25,7 @@ frecuencias = pd.DataFrame({
 
 # Mostrar la aplicación en Streamlit
 st.title("Simulación de Lanzamiento de un Dado")
-
+st.write(f"Aplicación desarrollada por Miguel Angel Villarraga Franco")
 st.write(f"**Resultados de los 20 lanzamientos del dado:**")
 st.write(resultados)
 
